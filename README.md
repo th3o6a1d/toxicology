@@ -1,6 +1,8 @@
 # Building a Poison Control API and Emergency Text System from MSDS Data Sheets
 >by Jason Theobald, Carlos Capellan, and Lauren Griggs. 
 
+![](http://i863.photobucket.com/albums/ab193/lead_poisoning/poison.png)
+
 1. The Goal
 2. Getting the Data from Amazon AWS
 3. Building the Database
@@ -30,7 +32,7 @@ We left the first aid and ingredient information in large chunks of text or with
 ## 4. Fun with SQL
 
 ## 5. Serving up JSON with Flask
-We wanted to create an API with a simple endpoint that would allow a user to search for a product, allow for imprecise string matching, and receive the top 5 hits with associated first aid and ingredient information. 
+We wanted to create an API with a simple endpoint that would allow a user to search for a product, allow for imprecise string matching, and receive the top 5 hits with associated first aid and ingredient information. Take it for a spin:
 
 ```
 curl poisons.tk/ethanol
@@ -48,8 +50,12 @@ ORDER BY LEVENSHTEIN(prodid,'%s') ASC
 LIMIT 5;
 ```
 
+After receiving the results of the query, the Flask server assembles a nested JSON object. Currently, it groups the top results by product name and returns any ingredients or first aid information associated with that product, which results in good coverage of all possible ingredients and first aid info for a given product, but with occasional duplication.
+
 ## 6. Creating an Emergency Text Message System with Twilio
-`In case of emergency, text the the name of product to: (479) 431-2442`
+Oh no! The dog just drank bleach: 
+
+`In case of emergency, text the name of product to: (479) 431-2442`
 
 ![](https://raw.githubusercontent.com/th3o6a1d/toxicology/master/text.png)
 
