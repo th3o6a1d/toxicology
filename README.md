@@ -3,13 +3,6 @@
 
 ![](http://i863.photobucket.com/albums/ab193/lead_poisoning/poison.png)
 
-1. The Goal
-2. Getting the Data from Amazon AWS
-3. Building the Database
-4. Fun with SQL
-5. Serving up JSON with Flask
-6. Creating an Emergency Text Message System with Twilio
-
 ## 1. The Goal:
 * To create a poison control database with information contained in freely available Material Safety Data Sheets. 
 * To enable a user to receive first aid instructions and a list of ingredients in JSON-format via a Flask-powered API
@@ -29,9 +22,7 @@ To load the data, we started by writing a [script](https://github.com/th3o6a1d/t
 
 We left the first aid and ingredient information in large chunks of text or with delimeters for later parsing. After loading the product table, we wrote scripts (e.g [ingredients.py](https://github.com/th3o6a1d/toxicology/blob/master/ingreds.py)) that iterated through the product table 10,000 rows at a time and created the first aid and information tables. Finally, we used `SQL REGEXP` to create new columns (oralLD50, oralLD50units) for products with an oral [LD50](http://en.wikipedia.org/wiki/Median_lethal_dose) value.
 
-## 4. Fun with SQL
-
-## 5. Serving up JSON with Flask
+## 4. Serving up JSON with Flask
 We wanted to create an API with a simple endpoint that would allow a user to search for a product, allow for imprecise string matching, and receive the top 5 hits with associated first aid and ingredient information. Take it for a spin:
 
 ```
@@ -52,7 +43,7 @@ LIMIT 5;
 
 After receiving the results of the query, the Flask server assembles a nested JSON object. Currently, it groups the top results by product name and returns any ingredients or first aid information associated with that product, which results in good coverage of all possible ingredients and first aid info for a given product, but with occasional duplication.
 
-## 6. Creating an Emergency Text Message System with Twilio
+## 5. Creating an Emergency Text Message System with Twilio
 Oh no! The dog just drank bleach: 
 
 `In case of emergency, text the name of product to: (479) 431-2442`
