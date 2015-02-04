@@ -29,7 +29,7 @@ We wanted to create an API with a simple endpoint that would allow a user to sea
 curl poisons.tk/ethanol
 ```
 
-The SQL query that powers our API relies on the `SOUNDEX()` algorithm to match user input to product name, then ranks the results using the `LEVENSHTEIN()` function [(non-standard)](http://stackoverflow.com/questions/13909885/how-to-add-levenshtein-function-in-mysql), which scores the 'distance' between two strings. Below is the SQL query that powers the Flask API. 
+The SQL query that powers our API relies on the `SOUNDEX()` algorithm to match user input to product name, then ranks the results using the `LEVENSHTEIN()` function [(non-standard)](http://stackoverflow.com/questions/13909885/how-to-add-levenshtein-function-in-mysql), which scores the 'distance' between two strings. Below is the SQL query that powers the [Flask API](https://github.com/th3o6a1d/toxicology/blob/master/server.py). 
 
 ```
 SELECT prodid, ingredient, cas, roe, instructions, oralLD50, 
