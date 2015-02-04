@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Toxicology by th3o6a1d</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Toxicology</h1>
+        <p>Creating a Toxicology API from MSDS date sheets.</p>
+
+        <p class="view"><a href="https://github.com/th3o6a1d/toxicology">View the Project on GitHub <small>th3o6a1d/toxicology</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/th3o6a1d/toxicology/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/th3o6a1d/toxicology/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/th3o6a1d/toxicology">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a id="building-a-poison-control-api-and-emergency-text-system-from-msds-data-sheets" class="anchor" href="#building-a-poison-control-api-and-emergency-text-system-from-msds-data-sheets" aria-hidden="true"><span class="octicon octicon-link"></span></a>Building a Poison Control API and Emergency Text System from MSDS Data Sheets</h1>
+
+<blockquote>
+<p>by Jason Theobald, Carlos Capellan, and Lauren Griggs. </p>
+</blockquote>
+
+<p><img src="http://i863.photobucket.com/albums/ab193/lead_poisoning/poison.png" alt=""></p>
+
+<h4>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage:</h4>
+
+<ul>
+<li><p><strong>JSON API:</strong> <code>curl poisons.tk/ethanol</code></p></li>
+<li><p><strong>SMS:</strong> Text <code>bleach</code> to <code>(479) 431-2442</code></p></li>
+</ul>
+
+<h2>
+<a id="1-the-goal" class="anchor" href="#1-the-goal" aria-hidden="true"><span class="octicon octicon-link"></span></a>1. The Goal:</h2>
+
+<ul>
+<li>To create a poison control database with information contained in freely available Material Safety Data Sheets. </li>
+<li>To enable a user to receive first aid instructions and a list of ingredients in JSON-format via a Flask-powered API</li>
+<li>To create a Twilio-powered emergency text message system that sends a user first aid instructions for a given exposure.</li>
+</ul>
+
+<h2>
+<a id="2-getting-the-data-from-amazon-aws" class="anchor" href="#2-getting-the-data-from-amazon-aws" aria-hidden="true"><span class="octicon octicon-link"></span></a>2. Getting the Data from Amazon AWS</h2>
+
+<p>The data consist of ~230,000 material safety data sheets stored in alphabetically-organized folders of .txt files, most of which are in a standard <a href="https://www.osha.gov/Publications/OSHA3514.html">format</a> with a predictable structure. The files are available as a public Amazon EBS snapshot <code>snap-a966d1c8</code>, which we mounted to our EC2 instance by following <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html">these</a> instructions. Per Amazon, the data were submitted by Infochimps and are said to come from <a href="hazard.com">hazard.com</a>, which is run by Vermont Safety Information Resources, inc. Most of the sheets appear to be from the 1990s. </p>
+
+<h2>
+<a id="3-building-the-database" class="anchor" href="#3-building-the-database" aria-hidden="true"><span class="octicon octicon-link"></span></a>3. Building the Database</h2>
+
+<p>We created <strong>three tables</strong> (product, ingredients, firstaid). Each MSDS corresponds to one item in the product table (e.g. Glass Cleaner). Each product has one or more ingredients (e.g. Isobutane, Propane) and one or more first aid instructions corresponding to a certain route of exposure (e.g. Eyes: flush with water). </p>
+
+<p><img src="https://raw.githubusercontent.com/th3o6a1d/toxicology/master/eer.png" alt=""></p>
+
+<p>To load the data, we started by writing a <a href="https://github.com/th3o6a1d/toxicology/blob/master/loader.py">script</a> that iterates through the many directories of <code>.txt</code> files, extracts fields matching regular expressions, and inserts them into the product table. We took advantage of the structured nature of the MSDS files while allowing for a certain degree of heterogeneity with our <code>try_regex()</code> function. For every failure of the regex to capture a specific field in the MSDS, we incremented an error variable, ending up with an overall import error rate of <strong>~1.5%.</strong> </p>
+
+<p>We left the first aid and ingredient information in large chunks of text or with delimeters for later parsing. After loading the product table, we wrote scripts (e.g <a href="https://github.com/th3o6a1d/toxicology/blob/master/ingreds.py">ingredients.py</a>) that iterated through the product table 10,000 rows at a time and created the first aid and information tables. Finally, we used <code>SQL REGEXP</code> to create new columns (oralLD50, oralLD50units) for products with an oral <a href="http://en.wikipedia.org/wiki/Median_lethal_dose">LD50</a> value.</p>
+
+<h2>
+<a id="4-serving-up-json-with-flask" class="anchor" href="#4-serving-up-json-with-flask" aria-hidden="true"><span class="octicon octicon-link"></span></a>4. Serving up JSON with Flask</h2>
+
+<p>We wanted to create an API with a simple endpoint that would allow a user to search for a product, allow for imprecise string matching, and receive the top 5 hits with associated first aid and ingredient information. Take it for a spin:</p>
+
+<pre><code>curl poisons.tk/ethanol
+</code></pre>
+
+<p>The SQL query that powers our API relies on the <code>SOUNDEX()</code> algorithm to match user input to product name, then ranks the results using the <code>LEVENSHTEIN()</code> function <a href="http://stackoverflow.com/questions/13909885/how-to-add-levenshtein-function-in-mysql">(non-standard)</a>, which scores the 'distance' between two strings. We also attempted to create a full text search by combining fields into a special search table that would link back to products, but the performance was poor on our EC2 instance (keepin' it cheap). Below is the SQL query that powers the <a href="https://github.com/th3o6a1d/toxicology/blob/master/server.py">Flask API</a>. </p>
+
+<pre><code>SELECT prodid, ingredient, cas, roe, instructions, oralLD50, 
+oralLD50units, overexp, carcino, hazards, msdsnum, msdsdate from product p 
+JOIN ingredients i ON i.product_id = p.id
+JOIN firstaid f ON f.product_id = p.id
+WHERE SOUNDEX(prodid) = SOUNDEX('%s')
+ORDER BY LEVENSHTEIN(prodid,'%s') ASC
+LIMIT 5;
+</code></pre>
+
+<p>After receiving the results of the query, the Flask server assembles a nested JSON object. Currently, it groups the top results by product name and returns any ingredients or first aid information associated with that product, which results in good coverage of all possible ingredients and first aid info for a given product, but with occasional duplication.</p>
+
+<h2>
+<a id="5-creating-an-emergency-text-message-system-with-twilio" class="anchor" href="#5-creating-an-emergency-text-message-system-with-twilio" aria-hidden="true"><span class="octicon octicon-link"></span></a>5. Creating an Emergency Text Message System with Twilio</h2>
+
+<p>Oh no! The dog just drank bleach: </p>
+
+<p><code>In case of emergency, text the name of product to: (479) 431-2442</code></p>
+
+<p><img src="https://raw.githubusercontent.com/th3o6a1d/toxicology/master/text.png" alt=""></p>
+
+<p>We wanted a user to be able to text a product name to a phone number and receive immediate first aid instructions in the event of an exposure. <a href="twilio.com">Twilio</a> is a fantastic service that allows a user to purchase phone numbers and program them to send a POST request upon receipt of a text message. This POST request gets sent to the Flask API, which returns an XML response, which is then interpreted and parsed into a response SMS by Twilio. </p>
+
+<h2>
+<a id="next-steps" class="anchor" href="#next-steps" aria-hidden="true"><span class="octicon octicon-link"></span></a>Next Steps</h2>
+
+<ul>
+<li>Continue to improve database. </li>
+<li>API is listed on Mashape but is currently disabled to reduce server burden while we demo and improve it. </li>
+</ul>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/th3o6a1d">th3o6a1d</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
