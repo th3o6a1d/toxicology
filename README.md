@@ -53,8 +53,8 @@ Oh no! The dog just drank bleach:
 We wanted a user to be able to text a product name to a phone number and receive immediate first aid instructions in the event of an exposure. [Twilio](twilio.com) is a fantastic service that allows a user to purchase phone numbers and program them to send a POST request upon receipt of a text message. This POST request gets sent to the Flask API, which returns an XML response, which is then interpreted and parsed into a response SMS by Twilio. 
 
 ## Next Steps
-*Continue to improve database. 
-*API is listed on Mashape but is currently disabled to reduce server burden while we demo and improve it. 
+* Continue to improve database. 
+* API is listed on Mashape but is currently disabled to reduce server burden while we demo and improve it. 
 
 
 
