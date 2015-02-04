@@ -29,7 +29,7 @@ We wanted to create an API with a simple endpoint that would allow a user to sea
 curl poisons.tk/ethanol
 ```
 
-The SQL query that powers our API relies on the `SOUNDEX()` algorithm to match user input to product name, then ranks the results using the `LEVENSHTEIN()` function [(non-standard)](http://stackoverflow.com/questions/13909885/how-to-add-levenshtein-function-in-mysql), which scores the 'distance' between two strings. Below is the SQL query that powers the [Flask API](https://github.com/th3o6a1d/toxicology/blob/master/server.py). 
+The SQL query that powers our API relies on the `SOUNDEX()` algorithm to match user input to product name, then ranks the results using the `LEVENSHTEIN()` function [(non-standard)](http://stackoverflow.com/questions/13909885/how-to-add-levenshtein-function-in-mysql), which scores the 'distance' between two strings. We also attempted to create a full text search by combining fields into a special search table that would link back to products, but the performance was poor on our EC2 instance (keepin' it cheap). Below is the SQL query that powers the [Flask API](https://github.com/th3o6a1d/toxicology/blob/master/server.py). 
 
 ```
 SELECT prodid, ingredient, cas, roe, instructions, oralLD50, 
@@ -53,7 +53,9 @@ Oh no! The dog just drank bleach:
 We wanted a user to be able to text a product name to a phone number and receive immediate first aid instructions in the event of an exposure. [Twilio](twilio.com) is a fantastic service that allows a user to purchase phone numbers and program them to send a POST request upon receipt of a text message. This POST request gets sent to the Flask API, which returns an XML response, which is then interpreted and parsed into a response SMS by Twilio. 
 
 ## Next Steps
-Continue to improve database. List on Mashape as freemium API. 
+*Continue to improve database. 
+*API is listed on Mashape but is currently disabled to reduce server burden while we demo and improve it. 
+
 
 
 
