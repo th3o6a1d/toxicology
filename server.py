@@ -6,7 +6,7 @@ import MySQLdb
 import threading
 
 webserver = Flask("test")
-conn = MySQLdb.connect(host="127.0.0.1", user="root", passwd="dwdstudent2015", db="msds")
+conn = MySQLdb.connect(host="127.0.0.1", user="root", passwd="", db="msds")
 cur = conn.cursor()
 
 def clean_up(string):

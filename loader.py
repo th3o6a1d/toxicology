@@ -1,7 +1,7 @@
 import os,re
 import MySQLdb
 
-conn = MySQLdb.connect(host="localhost", user="root", passwd="dwdstudent2015", db="msds")
+conn = MySQLdb.connect(host="localhost", user="root", passwd="", db="msds")
 cur = conn.cursor()
 
 
