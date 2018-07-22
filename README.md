@@ -2,7 +2,11 @@
 >by Jason Theobald, Carlos Capellan, and Lauren Griggs. 
 
 ![](http://i863.photobucket.com/albums/ab193/lead_poisoning/poison.png)
-####Usage:
+
+#### Usage:
+
+* API is no longer in service!!
+
 * **JSON API:** `curl poisons.tk/ethanol`
 
 * **SMS:** Text `bleach` to `(479) 431-2442`
